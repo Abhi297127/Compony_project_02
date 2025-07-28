@@ -336,6 +336,7 @@ def edit_employee():
                 except Exception as e:
                     st.error(f"Error updating employee: {e}")
 
+
 def mark_attendance():
     """Mark daily attendance"""
     st.subheader("✅ Mark Attendance")
@@ -349,13 +350,6 @@ def mark_attendance():
     
     db = get_database()
     
-    # Get all active employees
-    employees = list(db.employees.find({"is_active": True}).sort("full_name", 1))
-    
-    if not employees:
-        st.info("No active employees found.")
-        return
-    
     # Convert date to datetime range for MongoDB query
     date_start = datetime.combine(attendance_date, datetime.min.time())
     date_end = datetime.combine(attendance_date, datetime.max.time())
@@ -366,10 +360,29 @@ def mark_attendance():
     }))
     existing_dict = {record['employee_id']: record for record in existing_attendance}
     
+    # Get employees who haven't been marked as present yet
+    marked_present_employee_ids = [
+        record['employee_id'] for record in existing_attendance 
+        if record['status'] == 'present'
+    ]
+    
+    # Get all active employees excluding those already marked as present
+    employees = list(db.employees.find({
+        "is_active": True,
+        "employee_id": {"$nin": marked_present_employee_ids}
+    }).sort("full_name", 1))
+    
+    if not employees:
+        if marked_present_employee_ids:
+            st.success("All active employees have been marked as present for this date!")
+        else:
+            st.info("No active employees found.")
+        return
+    
     st.write(f"### Marking Attendance for {format_date_for_display(attendance_date)}")
     
     if existing_attendance:
-        st.warning(f"Attendance already marked for {len(existing_attendance)} employees on this date.")
+        st.info(f"Showing remaining employees. {len(marked_present_employee_ids)} employees already marked as present.")
     
     # Attendance form
     with st.form("attendance_form"):
@@ -394,7 +407,8 @@ def mark_attendance():
             
             with col3:
                 if employee['employee_id'] in existing_dict:
-                    st.success("✓ Marked")
+                    if existing_dict[employee['employee_id']]['status'] == 'absent':
+                        st.warning("⚠️ Absent")
         
         submitted = st.form_submit_button("Save Attendance")
         
@@ -429,6 +443,8 @@ def mark_attendance():
                     st.error(f"Error saving attendance for {emp_id}: {e}")
             
             st.success(f"Attendance saved! {records_inserted} new records, {records_updated} updated.")
+            # Rerun to refresh the employee list and hide present employees
+            st.rerun()
 
 def edit_attendance():
     """Edit previously marked attendance"""
