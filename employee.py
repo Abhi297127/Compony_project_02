@@ -344,7 +344,7 @@ def show_attendance_calendar(employee_id):
             st.error(f"Error processing record: {record} - Error: {str(e)}")
     
     # Debug: Show processed attendance dictionary
-    st.write(f"**Debug:** Processed attendance dictionary: {attendance_dict}")
+    # st.write(f"**Debug:** Processed attendance dictionary: {attendance_dict}")
     
     # Create and display calendar
     calendar_html = create_attendance_calendar_fixed(attendance_dict, cal_year, cal_month)
