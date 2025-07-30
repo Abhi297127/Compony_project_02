@@ -354,31 +354,34 @@ def mark_attendance():
     date_start = datetime.combine(attendance_date, datetime.min.time())
     date_end = datetime.combine(attendance_date, datetime.max.time())
     
-    # Check if attendance already marked for this date
+    # Check if attendance already marked for this date (sorted by employee_id)
     existing_attendance = list(db.attendance.find({
         "date": {"$gte": date_start, "$lte": date_end}
-    }))
+    }).sort("employee_id", 1))
     existing_dict = {record['employee_id']: record for record in existing_attendance}
     
     # Get employees who haven't been marked at all (neither present nor absent)
     marked_employee_ids = [record['employee_id'] for record in existing_attendance]
     
-    # Get all active employees excluding those already marked (present or absent)
+    # Get all active employees excluding those already marked (present or absent) - sorted by employee_id
     employees = list(db.employees.find({
         "is_active": True,
         "employee_id": {"$nin": marked_employee_ids}
-    }).sort("full_name", 1))
+    }).sort("employee_id", 1))
     
     # Display attendance summary table if there are existing records
     if existing_attendance:
         st.write(f"### Attendance Summary for {format_date_for_display(attendance_date)}")
         
-        # Create summary table
+        # Create summary table (sorted by employee_id)
         summary_data = []
         present_count = 0
         absent_count = 0
         
-        for record in existing_attendance:
+        # Sort existing_attendance by employee_id for consistent display
+        sorted_attendance = sorted(existing_attendance, key=lambda x: x['employee_id'])
+        
+        for record in sorted_attendance:
             # Get employee details
             employee = db.employees.find_one({"employee_id": record['employee_id']})
             employee_name = employee['full_name'] if employee else "Unknown"
