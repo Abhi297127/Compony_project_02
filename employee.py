@@ -613,7 +613,7 @@ def view_tbt_images():
                 # Display image
                 image = base64_to_image(img_record['image_data'])
                 if image:
-                    st.image(image, caption=f"TBT Image {i}", use_column_width=True)
+                    st.image(image, caption=f"TBT Image {i}", use_container_width=True)
             
             with col2:
                 st.write(f"**Filename:** {img_record['filename']}")
