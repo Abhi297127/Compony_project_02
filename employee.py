@@ -629,32 +629,7 @@ def view_tbt_images():
         except Exception as e:
             st.error(f"Error creating download link: {str(e)}")
     
-    # Helper function for image modal view
-    def show_image_modal(img_record, index, unique_id):
-        """Show image in expandable modal view"""
-        with st.expander(f"🖼️ View Full Image {index}", expanded=False):
-            image = base64_to_image(img_record['image_data'])
-            if image:
-                st.image(image, use_container_width=True)
-                
-                # Mobile-friendly info layout
-                info_col1, info_col2 = st.columns(2)
-                with info_col1:
-                    st.info(f"📁 **File:** {img_record['filename']}")
-                    st.info(f"👤 **By:** {img_record['uploaded_by']}")
-                with info_col2:
-                    st.info(f"⏰ **Time:** {img_record['uploaded_at'].strftime('%H:%M:%S')}")
-                    if 'date' in img_record:
-                        display_date = img_record['date'].date() if isinstance(img_record['date'], datetime) else img_record['date']
-                        st.info(f"📅 **Date:** {format_date_for_display(display_date)}")
-                
-                # Download button with unique key
-                create_download_link(
-                    img_record['image_data'],
-                    img_record['filename'],
-                    f"📥 Download {img_record['filename']}",
-                    f"download_modal_{unique_id}_{index}"
-                )
+
     
     if images:
         st.success(f"📊 **{len(images)} TBT Image(s) found for {format_date_for_display(view_date)}**")
@@ -662,41 +637,32 @@ def view_tbt_images():
         # Mobile-optimized image grid
         for i, img_record in enumerate(images, 1):
             # Create unique identifier for each image
-            unique_id = str(img_record.get('_id', f"img_{i}_{int(datetime.now().timestamp())}"))[:-6]  # Use last 6 chars of ID
+            unique_id = str(img_record.get('_id', f"img_{i}_{int(datetime.now().timestamp())}"))[:-6]
             
             with st.container():
-                # Compact mobile layout
-                col1, col2 = st.columns([1, 2])
+                # Mobile layout with image, info, and download
+                col1, col2, col3 = st.columns([2, 3, 2])
                 
                 with col1:
-                    # Thumbnail with click to expand
+                    # Image thumbnail
                     image = base64_to_image(img_record['image_data'])
                     if image:
                         st.image(image, width=120, caption=f"TBT {i}")
                 
                 with col2:
-                    # Compact info display
-                    st.write(f"**📁 {img_record['filename']}**")
-                    st.write(f"👤 {img_record['uploaded_by']}")
-                    st.write(f"⏰ {img_record['uploaded_at'].strftime('%H:%M:%S')}")
-                    
-                    # Action buttons in a row
-                    btn_col1, btn_col2 = st.columns(2)
-                    
-                    with btn_col1:
-                        if st.button(f"👁️ View", key=f"view_{unique_id}", help="View full image"):
-                            show_image_modal(img_record, i, unique_id)
-                    
-                    with btn_col2:
-                        create_download_link(
-                            img_record['image_data'],
-                            img_record['filename'],
-                            "📥 Save",
-                            f"download_{unique_id}"
-                        )
+                    # User and time info
+                    st.write(f"**👤 {img_record['uploaded_by']}**")
+                    st.write(f"**⏰ {img_record['uploaded_at'].strftime('%H:%M:%S')}**")
+                    st.write(f"📁 {img_record['filename'][:25]}{'...' if len(img_record['filename']) > 25 else ''}")
                 
-                # Full image modal with unique key
-                show_image_modal(img_record, i, unique_id)
+                with col3:
+                    # Download button
+                    create_download_link(
+                        img_record['image_data'],
+                        img_record['filename'],
+                        "📥 Download",
+                        f"download_{unique_id}"
+                    )
                 
                 st.divider()
     else:
@@ -726,7 +692,7 @@ def view_tbt_images():
             recent_unique_id = f"recent_{str(img_record.get('_id', f'rec_{idx}'))[-8:]}"
             
             with st.container():
-                col1, col2, col3 = st.columns([1, 2, 1])
+                col1, col2, col3 = st.columns([2, 3, 2])
                 
                 with col1:
                     # Small thumbnail
@@ -742,24 +708,15 @@ def view_tbt_images():
                         display_date = img_record['date']
                     
                     st.write(f"**📅 {format_date_for_display(display_date)}**")
-                    st.write(f"📁 {img_record['filename'][:20]}{'...' if len(img_record['filename']) > 20 else ''}")
+                    st.write(f"**👤 {img_record['uploaded_by']}**")
+                    st.write(f"**⏰ {img_record['uploaded_at'].strftime('%H:%M:%S')}**")
                 
                 with col3:
-                    # Quick view button
-                    if st.button(f"👁️", key=f"quick_view_{recent_unique_id}", help="Quick view"):
-                        # Convert datetime to date if needed for session state
-                        if isinstance(img_record['date'], datetime):
-                            st.session_state.selected_date = img_record['date'].date()
-                        else:
-                            st.session_state.selected_date = img_record['date']
-                        # Update the date input and refresh
-                        st.rerun()
-                    
-                    # Quick download
+                    # Download button
                     create_download_link(
                         img_record['image_data'],
                         img_record['filename'],
-                        "💾",
+                        "📥 Download",
                         f"quick_download_{recent_unique_id}"
                     )
                 
@@ -771,8 +728,7 @@ def view_tbt_images():
     # with st.expander("ℹ️ Help & Tips"):
     #     st.markdown("""
     #     **📱 Mobile Usage Tips:**
-    #     - Tap **👁️ View** to see full-size images
-    #     - Use **📥 Save/Download** buttons to save images to your device
+    #     - Use **📥 Download** buttons to save images to your device
     #     - **🔄 Refresh** button updates the current date's images
     #     - **Recent Images** shows the last 5 uploaded images
         
@@ -784,6 +740,8 @@ def view_tbt_images():
     
     # # Add some mobile-friendly spacing
     # st.markdown("<br>", unsafe_allow_html=True)
+
+
 def request_attendance():
     """Request attendance correction"""
     st.subheader("📝 Request Attendance Correction")
