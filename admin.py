@@ -383,10 +383,10 @@ def mark_attendance():
         if record['status'] == 'present'
     ]
     
-    # Get all active employees
+    # Get all active employees - CHANGED: Sort by employee_id instead of full_name
     all_employees = list(db.employees.find({
         "is_active": True
-    }).sort("full_name", 1))
+    }).sort("employee_id", 1))
     
     # For initial marking, show all employees
     # For editing, show only those not marked as present
@@ -519,6 +519,10 @@ def show_attendance_summary(db, date_start, date_end, attendance_date):
         else:
             absent_employees.append(emp_data)
     
+    # Sort both lists by Employee ID for consistent display
+    present_employees.sort(key=lambda x: x['Employee ID'])
+    absent_employees.sort(key=lambda x: x['Employee ID'])
+    
     # Display summary statistics
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -548,8 +552,10 @@ def show_attendance_summary(db, date_start, date_end, attendance_date):
     # Download options
     st.write("### 📥 Download Options")
     
-    # Prepare combined data for download
+    # Prepare combined data for download (sorted by Employee ID)
     all_employees_data = present_employees + absent_employees
+    all_employees_data.sort(key=lambda x: x['Employee ID'])
+    
     if all_employees_data:
         combined_df = pd.DataFrame(all_employees_data)
         
