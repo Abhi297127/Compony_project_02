@@ -337,6 +337,10 @@ def edit_employee():
                     st.error(f"Error updating employee: {e}")
 
 
+
+import pandas as pd
+from io import BytesIO
+
 def mark_attendance():
     """Mark daily attendance"""
     st.subheader("✅ Mark Attendance")
@@ -354,6 +358,19 @@ def mark_attendance():
     date_start = datetime.combine(attendance_date, datetime.min.time())
     date_end = datetime.combine(attendance_date, datetime.max.time())
     
+    # Check if attendance has been submitted for this date
+    attendance_submitted = st.session_state.get(f'attendance_submitted_{attendance_date}', False)
+    
+    if attendance_submitted:
+        # Show summary table after submission
+        show_attendance_summary(db, date_start, date_end, attendance_date)
+        
+        # Reset button to go back to marking attendance
+        if st.button("📝 Mark/Edit Attendance Again"):
+            st.session_state[f'attendance_submitted_{attendance_date}'] = False
+            st.rerun()
+        return
+    
     # Check if attendance already marked for this date
     existing_attendance = list(db.attendance.find({
         "date": {"$gte": date_start, "$lte": date_end}
@@ -366,17 +383,26 @@ def mark_attendance():
         if record['status'] == 'present'
     ]
     
-    # Get all active employees excluding those already marked as present
-    employees = list(db.employees.find({
-        "is_active": True,
-        "employee_id": {"$nin": marked_present_employee_ids}
+    # Get all active employees
+    all_employees = list(db.employees.find({
+        "is_active": True
     }).sort("full_name", 1))
     
-    if not employees:
-        if marked_present_employee_ids:
-            st.success("All active employees have been marked as present for this date!")
-        else:
-            st.info("No active employees found.")
+    # For initial marking, show all employees
+    # For editing, show only those not marked as present
+    if existing_attendance:
+        employees = [emp for emp in all_employees if emp['employee_id'] not in marked_present_employee_ids]
+    else:
+        employees = all_employees
+    
+    if not employees and not existing_attendance:
+        st.info("No active employees found.")
+        return
+    
+    if not employees and existing_attendance:
+        st.success("All active employees have been marked as present for this date!")
+        # Show the summary even if all are present
+        show_attendance_summary(db, date_start, date_end, attendance_date)
         return
     
     st.write(f"### Marking Attendance for {format_date_for_display(attendance_date)}")
@@ -410,7 +436,7 @@ def mark_attendance():
                     if existing_dict[employee['employee_id']]['status'] == 'absent':
                         st.warning("⚠️ Absent")
         
-        submitted = st.form_submit_button("Save Attendance")
+        submitted = st.form_submit_button("💾 Save Attendance", use_container_width=True)
         
         if submitted:
             records_updated = 0
@@ -442,9 +468,158 @@ def mark_attendance():
                 except Exception as e:
                     st.error(f"Error saving attendance for {emp_id}: {e}")
             
-            st.success(f"Attendance saved! {records_inserted} new records, {records_updated} updated.")
-            # Rerun to refresh the employee list and hide present employees
+            st.success(f"✅ Attendance saved! {records_inserted} new records, {records_updated} updated.")
+            
+            # Set flag to show summary table
+            st.session_state[f'attendance_submitted_{attendance_date}'] = True
             st.rerun()
+
+
+def show_attendance_summary(db, date_start, date_end, attendance_date):
+    """Show attendance summary table with download options"""
+    st.write("### 📊 Attendance Summary")
+    st.write(f"**Date:** {format_date_for_display(attendance_date)}")
+    
+    # Get all attendance records for the date
+    attendance_records = list(db.attendance.find({
+        "date": {"$gte": date_start, "$lte": date_end}
+    }))
+    
+    if not attendance_records:
+        st.info("No attendance records found for this date.")
+        return
+    
+    # Get employee details
+    employee_ids = [record['employee_id'] for record in attendance_records]
+    employees = list(db.employees.find({
+        "employee_id": {"$in": employee_ids}
+    }))
+    employee_dict = {emp['employee_id']: emp for emp in employees}
+    
+    # Prepare data for display
+    present_employees = []
+    absent_employees = []
+    
+    for record in attendance_records:
+        emp_id = record['employee_id']
+        employee = employee_dict.get(emp_id, {})
+        
+        emp_data = {
+            'Employee ID': emp_id,
+            'Name': employee.get('full_name', 'Unknown'),
+            'Department': employee.get('department', 'N/A'),
+            'Designation': employee.get('designation', 'N/A'),
+            'Status': record['status'].title(),
+            'Marked By': record.get('marked_by', 'N/A'),
+            'Time': record.get('created_at', datetime.now()).strftime('%H:%M:%S')
+        }
+        
+        if record['status'] == 'present':
+            present_employees.append(emp_data)
+        else:
+            absent_employees.append(emp_data)
+    
+    # Display summary statistics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Employees", len(attendance_records))
+    with col2:
+        st.metric("Present", len(present_employees), delta=f"{len(present_employees)}")
+    with col3:
+        st.metric("Absent", len(absent_employees), delta=f"-{len(absent_employees)}" if len(absent_employees) > 0 else "0")
+    
+    # Create tabs for present and absent employees
+    tab1, tab2 = st.tabs([f"✅ Present ({len(present_employees)})", f"❌ Absent ({len(absent_employees)})"])
+    
+    with tab1:
+        if present_employees:
+            present_df = pd.DataFrame(present_employees)
+            st.dataframe(present_df, use_container_width=True, hide_index=True)
+        else:
+            st.info("No employees marked as present.")
+    
+    with tab2:
+        if absent_employees:
+            absent_df = pd.DataFrame(absent_employees)
+            st.dataframe(absent_df, use_container_width=True, hide_index=True)
+        else:
+            st.success("No employees marked as absent.")
+    
+    # Download options
+    st.write("### 📥 Download Options")
+    
+    # Prepare combined data for download
+    all_employees_data = present_employees + absent_employees
+    if all_employees_data:
+        combined_df = pd.DataFrame(all_employees_data)
+        
+        # Create download buttons in columns for better mobile layout
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            # CSV download
+            csv_buffer = BytesIO()
+            combined_df.to_csv(csv_buffer, index=False)
+            csv_data = csv_buffer.getvalue()
+            
+            st.download_button(
+                label="📄 Download CSV",
+                data=csv_data,
+                file_name=f"attendance_{attendance_date.strftime('%Y-%m-%d')}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+        
+        with col2:
+            # Excel download
+            excel_buffer = BytesIO()
+            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                combined_df.to_excel(writer, sheet_name='Attendance', index=False)
+                if present_employees:
+                    pd.DataFrame(present_employees).to_excel(writer, sheet_name='Present', index=False)
+                if absent_employees:
+                    pd.DataFrame(absent_employees).to_excel(writer, sheet_name='Absent', index=False)
+            
+            excel_data = excel_buffer.getvalue()
+            
+            st.download_button(
+                label="📊 Download Excel",
+                data=excel_data,
+                file_name=f"attendance_{attendance_date.strftime('%Y-%m-%d')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+        
+        with col3:
+            # JSON download for mobile compatibility
+            json_data = combined_df.to_json(orient='records', indent=2)
+            
+            st.download_button(
+                label="📱 Download JSON",
+                data=json_data,
+                file_name=f"attendance_{attendance_date.strftime('%Y-%m-%d')}.json",
+                mime="application/json",
+                use_container_width=True
+            )
+    
+    # Summary text for quick sharing (mobile-friendly)
+    st.write("### 📱 Quick Summary")
+    summary_text = f"""
+Attendance Summary - {format_date_for_display(attendance_date)}
+{'='*50}
+Total Employees: {len(attendance_records)}
+Present: {len(present_employees)}
+Absent: {len(absent_employees)}
+
+Present Employees:
+{chr(10).join([f"• {emp['Name']} ({emp['Employee ID']})" for emp in present_employees]) if present_employees else "None"}
+
+Absent Employees:
+{chr(10).join([f"• {emp['Name']} ({emp['Employee ID']})" for emp in absent_employees]) if absent_employees else "None"}
+"""
+    
+    st.text_area("Copy this summary:", summary_text, height=200)
+
 
 def edit_attendance():
     """Edit previously marked attendance"""
