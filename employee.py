@@ -666,59 +666,59 @@ def view_tbt_images():
         st.info("📭 No TBT images found for the selected date.")
         st.write("💡 **Tip:** Try selecting a different date or check if images were uploaded correctly.")
     
-    # Recent images section - Mobile optimized
-    st.subheader("📋 Recent TBT Images")
+    # # Recent images section - Mobile optimized
+    # st.subheader("📋 Recent TBT Images")
     
-    current_time = datetime.now()
-    should_refresh_recent = (
-        st.session_state.recent_tbt_last_update is None or
-        (current_time - st.session_state.recent_tbt_last_update).total_seconds() > 300
-    )
+    # current_time = datetime.now()
+    # should_refresh_recent = (
+    #     st.session_state.recent_tbt_last_update is None or
+    #     (current_time - st.session_state.recent_tbt_last_update).total_seconds() > 300
+    # )
     
-    if should_refresh_recent:
-        recent_images = list(db.attendance_images.find().sort("date", -1).limit(5))
-        st.session_state.recent_tbt_data = recent_images
-        st.session_state.recent_tbt_last_update = current_time
-    else:
-        recent_images = st.session_state.recent_tbt_data
+    # if should_refresh_recent:
+    #     recent_images = list(db.attendance_images.find().sort("date", -1).limit(5))
+    #     st.session_state.recent_tbt_data = recent_images
+    #     st.session_state.recent_tbt_last_update = current_time
+    # else:
+    #     recent_images = st.session_state.recent_tbt_data
     
-    if recent_images:
-        # Mobile-friendly recent images layout
-        for idx, img_record in enumerate(recent_images):
-            # Create unique identifier for recent images
-            recent_unique_id = f"recent_{str(img_record.get('_id', f'rec_{idx}'))[-8:]}"
+    # if recent_images:
+    #     # Mobile-friendly recent images layout
+    #     for idx, img_record in enumerate(recent_images):
+    #         # Create unique identifier for recent images
+    #         recent_unique_id = f"recent_{str(img_record.get('_id', f'rec_{idx}'))[-8:]}"
             
-            with st.container():
-                col1, col2, col3 = st.columns([2, 3, 2])
+    #         with st.container():
+    #             col1, col2, col3 = st.columns([2, 3, 2])
                 
-                with col1:
-                    # Small thumbnail
-                    image = base64_to_image(img_record['image_data'])
-                    if image:
-                        st.image(image, width=80)
+    #             with col1:
+    #                 # Small thumbnail
+    #                 image = base64_to_image(img_record['image_data'])
+    #                 if image:
+    #                     st.image(image, width=80)
                 
-                with col2:
-                    # Handle both date and datetime objects for display
-                    if isinstance(img_record['date'], datetime):
-                        display_date = img_record['date'].date()
-                    else:
-                        display_date = img_record['date']
+    #             with col2:
+    #                 # Handle both date and datetime objects for display
+    #                 if isinstance(img_record['date'], datetime):
+    #                     display_date = img_record['date'].date()
+    #                 else:
+    #                     display_date = img_record['date']
                     
-                    st.write(f"**📅 {format_date_for_display(display_date)}**")
-                    st.write(f"**👤 {img_record['uploaded_by']}**")
-                    st.write(f"**⏰ {img_record['uploaded_at'].strftime('%H:%M:%S')}**")
+    #                 st.write(f"**📅 {format_date_for_display(display_date)}**")
+    #                 st.write(f"**👤 {img_record['uploaded_by']}**")
+    #                 st.write(f"**⏰ {img_record['uploaded_at'].strftime('%H:%M:%S')}**")
                 
-                with col3:
-                    # Download button
-                    create_download_link(
-                        img_record['image_data'],
-                        img_record['filename'],
-                        "📥 Download",
-                        f"quick_download_{recent_unique_id}"
-                    )
+    #             with col3:
+    #                 # Download button
+    #                 create_download_link(
+    #                     img_record['image_data'],
+    #                     img_record['filename'],
+    #                     "📥 Download",
+    #                     f"quick_download_{recent_unique_id}"
+    #                 )
                 
-                st.divider()
-    else:
+    #             st.divider()
+    # else:
         st.info("📭 No recent TBT images found.")
     
 
