@@ -854,8 +854,7 @@ def mark_attendance():
             col1, col2 = st.columns([1, 1])
             
             with col1:
-                if st.radio(f"", 
-                           ['✅ Present', '❌ Absent'],
+                if st.radio(['✅ Present', '❌ Absent'],
                            index=0 if current_status == 'present' else 1,
                            key=f"status_{employee['employee_id']}",
                            horizontal=True) == '✅ Present':
