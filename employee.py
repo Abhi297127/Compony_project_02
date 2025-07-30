@@ -1,3 +1,4 @@
+import base64
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
@@ -563,7 +564,7 @@ def show_attendance_summary(employee_id):
         st.info("No attendance data found for the selected period.")
 
 def view_tbt_images():
-    """View Toolbox Talk images"""
+    """View Toolbox Talk images - Mobile Optimized"""
     st.subheader("📸 Toolbox Talk Images")
     
     # Initialize session state for TBT images
@@ -572,11 +573,19 @@ def view_tbt_images():
         st.session_state.tbt_params = None
         st.session_state.recent_tbt_data = None
         st.session_state.recent_tbt_last_update = None
+        st.session_state.selected_image_modal = None
     
     db = get_cached_database()
     
-    # Date selection
-    view_date = st.date_input("Select Date", value=datetime.now().date(), key="tbt_date")
+    # Mobile-friendly date selection with better layout
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        view_date = st.date_input("📅 Select Date", value=datetime.now().date(), key="tbt_date")
+    with col2:
+        if st.button("🔄 Refresh", help="Refresh images for selected date"):
+            # Force refresh by clearing cache
+            st.session_state.tbt_params = None
+            st.rerun()
     
     # Create current parameters
     current_params = {
@@ -601,34 +610,97 @@ def view_tbt_images():
         # Use cached data
         images = st.session_state.tbt_data
     
-    if images:
-        st.write(f"**TBT Images for {format_date_for_display(view_date)}**")
-        
-        for i, img_record in enumerate(images, 1):
-            st.write(f"### Image {i}")
+    # Helper function to create download link for mobile
+    def create_download_link(image_data, filename, button_text, key):
+        """Create a proper download link that works on mobile"""
+        try:
+            # Decode base64 image data
+            image_bytes = base64.b64decode(image_data)
             
-            col1, col2 = st.columns([3, 1])
-            
-            with col1:
-                # Display image
-                image = base64_to_image(img_record['image_data'])
-                if image:
-                    st.image(image, caption=f"TBT Image {i}", use_container_width=True)
-            
-            with col2:
-                st.write(f"**Filename:** {img_record['filename']}")
-                st.write(f"**Uploaded by:** {img_record['uploaded_by']}")
-                st.write(f"**Time:** {img_record['uploaded_at'].strftime('%H:%M:%S')}")
+            # Create download button with proper MIME type
+            st.download_button(
+                label=button_text,
+                data=image_bytes,
+                file_name=filename,
+                mime="image/jpeg",  # Adjust based on your image format
+                key=key,
+                help="Download image to your device"
+            )
+        except Exception as e:
+            st.error(f"Error creating download link: {str(e)}")
+    
+    # Helper function for image modal view
+    def show_image_modal(img_record, index):
+        """Show image in expandable modal view"""
+        with st.expander(f"🖼️ View Full Image {index}", expanded=False):
+            image = base64_to_image(img_record['image_data'])
+            if image:
+                st.image(image, use_container_width=True)
+                
+                # Mobile-friendly info layout
+                info_col1, info_col2 = st.columns(2)
+                with info_col1:
+                    st.info(f"📁 **File:** {img_record['filename']}")
+                    st.info(f"👤 **By:** {img_record['uploaded_by']}")
+                with info_col2:
+                    st.info(f"⏰ **Time:** {img_record['uploaded_at'].strftime('%H:%M:%S')}")
+                    if 'date' in img_record:
+                        display_date = img_record['date'].date() if isinstance(img_record['date'], datetime) else img_record['date']
+                        st.info(f"📅 **Date:** {format_date_for_display(display_date)}")
                 
                 # Download button
-                if st.button(f"📥 Download Image {i}", key=f"download_{i}"):
-                    st.info("Right-click on the image above and select 'Save image as...' to download.")
-            
-            st.markdown("---")
-    else:
-        st.info("No TBT images found for the selected date.")
+                create_download_link(
+                    img_record['image_data'],
+                    img_record['filename'],
+                    f"📥 Download {img_record['filename']}",
+                    f"download_modal_{index}"
+                )
     
-    # Show recent images (cache for 5 minutes)
+    if images:
+        st.success(f"📊 **{len(images)} TBT Image(s) found for {format_date_for_display(view_date)}**")
+        
+        # Mobile-optimized image grid
+        for i, img_record in enumerate(images, 1):
+            with st.container():
+                # Compact mobile layout
+                col1, col2 = st.columns([1, 2])
+                
+                with col1:
+                    # Thumbnail with click to expand
+                    image = base64_to_image(img_record['image_data'])
+                    if image:
+                        st.image(image, width=120, caption=f"TBT {i}")
+                
+                with col2:
+                    # Compact info display
+                    st.write(f"**📁 {img_record['filename']}**")
+                    st.write(f"👤 {img_record['uploaded_by']}")
+                    st.write(f"⏰ {img_record['uploaded_at'].strftime('%H:%M:%S')}")
+                    
+                    # Action buttons in a row
+                    btn_col1, btn_col2 = st.columns(2)
+                    
+                    with btn_col1:
+                        if st.button(f"👁️ View", key=f"view_{i}", help="View full image"):
+                            show_image_modal(img_record, i)
+                    
+                    with btn_col2:
+                        create_download_link(
+                            img_record['image_data'],
+                            img_record['filename'],
+                            "📥 Save",
+                            f"download_{i}"
+                        )
+                
+                # Full image modal
+                show_image_modal(img_record, i)
+                
+                st.divider()
+    else:
+        st.info("📭 No TBT images found for the selected date.")
+        st.write("💡 **Tip:** Try selecting a different date or check if images were uploaded correctly.")
+    
+    # Recent images section - Mobile optimized
     st.subheader("📋 Recent TBT Images")
     
     current_time = datetime.now()
@@ -645,35 +717,67 @@ def view_tbt_images():
         recent_images = st.session_state.recent_tbt_data
     
     if recent_images:
-        for img_record in recent_images:
-            col1, col2, col3 = st.columns([1, 2, 1])
-            
-            with col1:
-                # Thumbnail
-                image = base64_to_image(img_record['image_data'])
-                if image:
-                    st.image(image, width=100)
-            
-            with col2:
-                # Handle both date and datetime objects for display
-                if isinstance(img_record['date'], datetime):
-                    display_date = img_record['date'].date()
-                else:
-                    display_date = img_record['date']
-                st.write(f"**Date:** {format_date_for_display(display_date)}")
-                st.write(f"**Filename:** {img_record['filename']}")
-            
-            with col3:
-                if st.button(f"👁️ View", key=f"view_{img_record['_id']}"):
-                    # Convert datetime to date if needed for session state
+        # Mobile-friendly recent images layout
+        for idx, img_record in enumerate(recent_images):
+            with st.container():
+                col1, col2, col3 = st.columns([1, 2, 1])
+                
+                with col1:
+                    # Small thumbnail
+                    image = base64_to_image(img_record['image_data'])
+                    if image:
+                        st.image(image, width=80)
+                
+                with col2:
+                    # Handle both date and datetime objects for display
                     if isinstance(img_record['date'], datetime):
-                        st.session_state.selected_date = img_record['date'].date()
+                        display_date = img_record['date'].date()
                     else:
-                        st.session_state.selected_date = img_record['date']
-                    st.rerun()
+                        display_date = img_record['date']
+                    
+                    st.write(f"**📅 {format_date_for_display(display_date)}**")
+                    st.write(f"📁 {img_record['filename'][:20]}{'...' if len(img_record['filename']) > 20 else ''}")
+                
+                with col3:
+                    # Quick view button
+                    if st.button(f"👁️", key=f"quick_view_{img_record['_id']}", help="Quick view"):
+                        # Convert datetime to date if needed for session state
+                        if isinstance(img_record['date'], datetime):
+                            st.session_state.selected_date = img_record['date'].date()
+                        else:
+                            st.session_state.selected_date = img_record['date']
+                        # Update the date input and refresh
+                        st.rerun()
+                    
+                    # Quick download
+                    create_download_link(
+                        img_record['image_data'],
+                        img_record['filename'],
+                        "💾",
+                        f"quick_download_{idx}"
+                    )
+                
+                st.divider()
     else:
-        st.info("No recent TBT images found.")
-
+        st.info("📭 No recent TBT images found.")
+    
+    # Mobile-friendly help section
+    with st.expander("ℹ️ Help & Tips"):
+        st.markdown("""
+        **📱 Mobile Usage Tips:**
+        - Tap **👁️ View** to see full-size images
+        - Use **📥 Save/Download** buttons to save images to your device
+        - **🔄 Refresh** button updates the current date's images
+        - **Recent Images** shows the last 5 uploaded images
+        
+        **💡 Troubleshooting:**
+        - If download doesn't work, try using a different browser
+        - On iOS, downloaded images go to your Photos app
+        - On Android, check your Downloads folder
+        """)
+    
+    # Add some mobile-friendly spacing
+    st.markdown("<br>", unsafe_allow_html=True)
 def request_attendance():
     """Request attendance correction"""
     st.subheader("📝 Request Attendance Correction")
