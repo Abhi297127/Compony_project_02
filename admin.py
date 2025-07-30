@@ -337,7 +337,6 @@ def edit_employee():
                     st.error(f"Error updating employee: {e}")
 
 
-
 import pandas as pd
 import streamlit as st
 from io import BytesIO
@@ -346,350 +345,95 @@ from datetime import datetime
 def inject_custom_css():
     st.markdown("""
     <style>
-    /* Modern color palette and typography */
-    :root {
-        --primary-color: #667eea;
-        --secondary-color: #764ba2;
-        --success-color: #48bb78;
-        --danger-color: #f56565;
-        --warning-color: #ed8936;
-        --info-color: #4299e1;
-        --light-bg: #f7fafc;
-        --card-bg: #ffffff;
-        --text-primary: #2d3748;
-        --text-secondary: #718096;
-        --border-color: #e2e8f0;
-        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-    
+    /* Simple, clean styling */
     .main {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 1rem;
+        font-family: Arial, sans-serif;
     }
     
-    .stApp > div:first-child {
-        background: transparent;
-    }
-    
-    /* Header styling */
     .attendance-header {
-        background: var(--card-bg);
-        padding: 2rem;
-        border-radius: 16px;
-        margin-bottom: 2rem;
-        text-align: center;
-        box-shadow: var(--shadow-lg);
-        border: 1px solid var(--border-color);
-    }
-    
-    .attendance-header h2 {
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin: 0;
-        font-size: 2.25rem;
-        font-weight: 700;
-    }
-    
-    .header-subtitle {
-        color: var(--text-secondary);
-        font-size: 1.1rem;
-        margin-top: 0.5rem;
-    }
-    
-    /* Date and time section */
-    .date-time-section {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-    }
-    
-    .current-time {
-        background: linear-gradient(135deg, var(--info-color), var(--primary-color));
-        color: white;
-        padding: 0.75rem 1.5rem;
+        background: #4CAF50;
+        padding: 1rem;
         border-radius: 8px;
-        text-align: center;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-    
-    /* Stats container */
-    .stats-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 1rem;
-        margin: 1.5rem 0;
-    }
-    
-    .stat-box {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 1.5rem;
-        text-align: center;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .stat-box::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    }
-    
-    .stat-box:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-    }
-    
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 0.25rem;
-    }
-    
-    .stat-label {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    /* Employee cards */
-    .employee-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.5rem;
         margin-bottom: 1rem;
-        box-shadow: var(--shadow);
-        transition: all 0.2s ease;
-        position: relative;
+        color: white;
+        text-align: center;
     }
     
-    .employee-card:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-lg);
-        border-color: var(--primary-color);
+    .employee-card {
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
     }
     
     .employee-info {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-    }
-    
-    .employee-details h4 {
-        color: var(--text-primary);
-        margin: 0 0 0.5rem 0;
-        font-size: 1.125rem;
-        font-weight: 600;
-    }
-    
-    .employee-meta {
-        color: var(--text-secondary);
-        font-size: 0.875rem;
-        display: flex;
-        gap: 1rem;
-    }
-    
-    .employee-meta span {
-        display: flex;
         align-items: center;
-        gap: 0.25rem;
     }
     
-    /* Status badges */
     .status-present {
-        background: var(--success-color);
+        background: #4CAF50;
         color: white;
-        padding: 0.375rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
     }
     
     .status-absent {
-        background: var(--danger-color);
+        background: #f44336;
         color: white;
-        padding: 0.375rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    /* Search section */
-    .search-section {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-    }
-    
-    /* Action buttons */
-    .bulk-actions {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-    }
-    
-    .bulk-actions h4 {
-        color: var(--text-primary);
-        margin: 0 0 1rem 0;
-        font-size: 1.125rem;
-        font-weight: 600;
-    }
-    
-    /* Summary section */
-    .summary-section {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-lg);
-        border: 1px solid var(--border-color);
-    }
-    
-    .summary-header {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    
-    .summary-header h2 {
-        color: var(--text-primary);
-        margin: 0 0 0.5rem 0;
-        font-size: 1.75rem;
-        font-weight: 700;
-    }
-    
-    .summary-date {
-        color: var(--text-secondary);
-        font-size: 1.1rem;
-    }
-    
-    /* Download section */
-    .download-section {
-        background: var(--light-bg);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-top: 1.5rem;
-        border: 2px dashed var(--border-color);
-    }
-    
-    .download-section h4 {
-        color: var(--text-primary);
-        margin: 0 0 1rem 0;
-        font-size: 1.125rem;
-        font-weight: 600;
-        text-align: center;
-    }
-    
-    /* Success message styling */
-    .success-message {
-        background: linear-gradient(135deg, var(--success-color), #38a169);
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        margin: 1rem 0;
-        font-weight: 600;
-        text-align: center;
-        box-shadow: var(--shadow);
-    }
-    
-    /* Radio button styling */
-    .stRadio > div {
-        background: var(--light-bg);
-        border-radius: 8px;
-        padding: 0.75rem;
-        border: 1px solid var(--border-color);
-    }
-    
-    /* Form styling */
-    .attendance-form {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-    }
-    
-    /* Progress indicator */
-    .progress-indicator {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 1rem 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        text-align: center;
-    }
-    
-    .progress-text {
-        color: var(--text-secondary);
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .progress-bar {
-        background: var(--border-color);
-        height: 8px;
+        padding: 0.2rem 0.5rem;
         border-radius: 4px;
-        overflow: hidden;
+        font-size: 0.8rem;
     }
     
-    .progress-fill {
-        background: linear-gradient(90deg, var(--success-color), var(--info-color));
-        height: 100%;
-        transition: width 0.3s ease;
+    .stats-container {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .stat-box {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        flex: 1;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
     }
     </style>
     """, unsafe_allow_html=True)
 
 def mark_attendance():
-    """Enhanced attendance marking interface"""
+    """Simple attendance marking interface"""
     
-    # Inject enhanced CSS
+    # Inject minimal CSS
     inject_custom_css()
     
-    # Enhanced header
+    # Simple header
     st.markdown("""
     <div class="attendance-header">
-        <h2>📋 Daily Attendance System</h2>
-        <div class="header-subtitle">Mark and manage employee attendance efficiently</div>
+        <h2>📋 Daily Attendance</h2>
     </div>
     """, unsafe_allow_html=True)
     
-    # Date and time section
-    st.markdown('<div class="date-time-section">', unsafe_allow_html=True)
+    # Date selection
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.write("**📅 Select Date:**")
+        st.write("**Select Date:**")
         attendance_date = st.date_input(
             "Date", 
             value=datetime.now().date(),
@@ -698,15 +442,11 @@ def mark_attendance():
     
     with col2:
         current_time = datetime.now().strftime("%I:%M %p")
-        st.markdown(f"""
-        <div class="current-time">
-            🕐 {current_time}
-        </div>
-        """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.write("**Current Time:**")
+        st.write(current_time)
     
     if attendance_date > datetime.now().date():
-        st.error("⚠️ Cannot mark attendance for future dates!")
+        st.error("Cannot mark attendance for future dates!")
         return
     
     db = get_database()
@@ -719,8 +459,8 @@ def mark_attendance():
     attendance_submitted = st.session_state.get(f'attendance_submitted_{attendance_date}', False)
     
     if attendance_submitted:
-        show_enhanced_summary(db, date_start, date_end, attendance_date)
-        if st.button("✏️ Edit Attendance", type="secondary"):
+        show_simple_summary(db, date_start, date_end, attendance_date)
+        if st.button("Edit Attendance"):
             st.session_state[f'attendance_submitted_{attendance_date}'] = False
             st.rerun()
         return
@@ -737,114 +477,68 @@ def mark_attendance():
     }).sort("employee_id", 1))
     
     if not all_employees:
-        st.info("ℹ️ No active employees found. Please add employees first.")
+        st.info("No active employees found.")
         return
     
-    # Enhanced stats
+    # Simple stats
     marked_present = len([r for r in existing_attendance if r['status'] == 'present'])
     marked_absent = len([r for r in existing_attendance if r['status'] == 'absent'])
     total = len(all_employees)
-    pending = total - len(existing_attendance)
-    attendance_rate = (marked_present / total * 100) if total > 0 else 0
     
     st.markdown(f"""
     <div class="stats-container">
         <div class="stat-box">
             <div class="stat-number">{total}</div>
-            <div class="stat-label">👥 Total</div>
+            <div class="stat-label">Total</div>
         </div>
         <div class="stat-box">
             <div class="stat-number">{marked_present}</div>
-            <div class="stat-label">✅ Present</div>
+            <div class="stat-label">Present</div>
         </div>
         <div class="stat-box">
             <div class="stat-number">{marked_absent}</div>
-            <div class="stat-label">❌ Absent</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-number">{pending}</div>
-            <div class="stat-label">⏳ Pending</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-number">{attendance_rate:.1f}%</div>
-            <div class="stat-label">📊 Rate</div>
+            <div class="stat-label">Absent</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # Progress indicator
-    progress_percentage = ((total - pending) / total * 100) if total > 0 else 0
-    st.markdown(f"""
-    <div class="progress-indicator">
-        <div class="progress-text">Attendance Progress: {total - pending}/{total} employees marked</div>
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: {progress_percentage}%"></div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Enhanced search
-    st.markdown('<div class="search-section">', unsafe_allow_html=True)
-    st.write("🔍 **Search Employees:**")
-    search_term = st.text_input("", placeholder="Search by name, ID, or department...", label_visibility="collapsed")
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Search
+    search_term = st.text_input("Search employees:", placeholder="Search by name or ID")
     
     # Filter employees
     filtered_employees = all_employees
     if search_term:
         filtered_employees = [emp for emp in all_employees 
                             if search_term.lower() in emp['full_name'].lower() or 
-                               search_term.lower() in emp['employee_id'].lower() or
-                               search_term.lower() in emp.get('department', '').lower()]
+                               search_term.lower() in emp['employee_id'].lower()]
+    
+    st.write(f"**Mark Attendance ({len(filtered_employees)} employees):**")
     
     # Attendance form
-    st.markdown('<div class="attendance-form">', unsafe_allow_html=True)
     with st.form("attendance_form"):
-        # Bulk actions
-        st.markdown('<div class="bulk-actions">', unsafe_allow_html=True)
-        st.write("⚡ **Quick Actions:**")
-        col1, col2, col3 = st.columns(3)
-        
-        bulk_action = None
-        with col1:
-            if st.form_submit_button("✅ Mark All Present", type="secondary"):
-                bulk_action = 'present'
-        with col2:
-            if st.form_submit_button("❌ Mark All Absent", type="secondary"):
-                bulk_action = 'absent'
-        with col3:
-            if st.form_submit_button("🔄 Reset All", type="secondary"):
-                bulk_action = 'reset'
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # Individual attendance
-        st.write(f"👤 **Individual Attendance ({len(filtered_employees)} employees):**")
-        
         attendance_data = {}
         
-        if bulk_action:
-            if bulk_action == 'reset':
-                # Reset to existing status or default to present
+        # Bulk actions
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.form_submit_button("Mark All Present"):
                 for emp in filtered_employees:
-                    current_status = existing_dict.get(emp['employee_id'], {}).get('status', 'present')
-                    attendance_data[emp['employee_id']] = current_status
-            else:
+                    attendance_data[emp['employee_id']] = 'present'
+        with col2:
+            if st.form_submit_button("Mark All Absent"):
                 for emp in filtered_employees:
-                    attendance_data[emp['employee_id']] = bulk_action
+                    attendance_data[emp['employee_id']] = 'absent'
         
+        st.write("---")
+        
+        # Individual attendance
         for employee in filtered_employees:
             st.markdown(f"""
             <div class="employee-card">
                 <div class="employee-info">
-                    <div class="employee-details">
-                        <h4>{employee['full_name']}</h4>
-                        <div class="employee-meta">
-                            <span>🆔 {employee['employee_id']}</span>
-                            <span>🏢 {employee.get('department', 'Not Assigned')}</span>
-                            <span>📧 {employee.get('email', 'N/A')}</span>
-                        </div>
+                    <div>
+                        <strong>{employee['full_name']}</strong><br>
+                        ID: {employee['employee_id']} | Dept: {employee.get('department', 'N/A')}
                     </div>
                 </div>
             </div>
@@ -852,42 +546,22 @@ def mark_attendance():
             
             # Status selection
             current_status = existing_dict.get(employee['employee_id'], {}).get('status', 'present')
-            if bulk_action and employee['employee_id'] not in attendance_data:
-                if bulk_action == 'reset':
-                    selected_status = current_status
-                else:
-                    selected_status = bulk_action
-            else:
-                selected_status = attendance_data.get(employee['employee_id'], current_status)
             
             status = st.radio(
-                f"Status for {employee['full_name']}", 
+                f"Status for {employee['employee_id']}", 
                 ['Present', 'Absent'],
-                index=0 if selected_status == 'present' else 1,
+                index=0 if current_status == 'present' else 1,
                 key=f"status_{employee['employee_id']}",
                 horizontal=True
             )
             
             attendance_data[employee['employee_id']] = status.lower()
         
-        # Submit button
-        submit_col1, submit_col2, submit_col3 = st.columns([1, 2, 1])
-        with submit_col2:
-            submit_button = st.form_submit_button("💾 Save Attendance", type="primary", use_container_width=True)
-        
-        if submit_button:
+        # Submit
+        if st.form_submit_button("Save Attendance", type="primary"):
             records_saved = 0
-            errors = []
             
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            
-            total_records = len(attendance_data)
-            
-            for i, (emp_id, status) in enumerate(attendance_data.items()):
-                status_text.text(f"Saving attendance for employee {i+1}/{total_records}...")
-                progress_bar.progress((i + 1) / total_records)
-                
+            for emp_id, status in attendance_data.items():
                 record_data = {
                     "employee_id": emp_id,
                     "date": datetime.combine(attendance_date, datetime.min.time()),
@@ -906,40 +580,18 @@ def mark_attendance():
                         db.attendance.insert_one(record_data)
                     records_saved += 1
                 except Exception as e:
-                    errors.append(f"Error saving attendance for {emp_id}: {str(e)}")
-            
-            progress_bar.empty()
-            status_text.empty()
+                    st.error(f"Error saving attendance for {emp_id}: {e}")
             
             if records_saved > 0:
-                st.markdown(f"""
-                <div class="success-message">
-                    🎉 Successfully saved attendance for {records_saved} employees!
-                </div>
-                """, unsafe_allow_html=True)
-                
-                if errors:
-                    for error in errors:
-                        st.error(error)
-                
+                st.success(f"Attendance saved for {records_saved} employees!")
                 st.session_state[f'attendance_submitted_{attendance_date}'] = True
                 st.rerun()
-            else:
-                st.error("Failed to save attendance records. Please try again.")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
-def show_enhanced_summary(db, date_start, date_end, attendance_date):
-    """Enhanced attendance summary with better visualization"""
+def show_simple_summary(db, date_start, date_end, attendance_date):
+    """Simple attendance summary"""
     
-    st.markdown(f"""
-    <div class="summary-section">
-        <div class="summary-header">
-            <h2>📊 Attendance Summary</h2>
-            <div class="summary-date">{attendance_date.strftime('%A, %B %d, %Y')}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.write("## Attendance Summary")
+    st.write(f"**Date:** {attendance_date.strftime('%B %d, %Y')}")
     
     # Get records
     attendance_records = list(db.attendance.find({
@@ -947,7 +599,7 @@ def show_enhanced_summary(db, date_start, date_end, attendance_date):
     }))
     
     if not attendance_records:
-        st.info("📝 No attendance records found for this date.")
+        st.info("No attendance records found.")
         return
     
     # Get employee details
@@ -961,30 +613,17 @@ def show_enhanced_summary(db, date_start, date_end, attendance_date):
     attendance_data = []
     present_count = 0
     absent_count = 0
-    dept_stats = {}
     
     for record in attendance_records:
         emp_id = record['employee_id']
         employee = employee_dict.get(emp_id, {})
-        dept = employee.get('department', 'Not Assigned')
-        
-        # Department statistics
-        if dept not in dept_stats:
-            dept_stats[dept] = {'present': 0, 'absent': 0, 'total': 0}
-        
-        dept_stats[dept]['total'] += 1
-        if record['status'] == 'present':
-            dept_stats[dept]['present'] += 1
-        else:
-            dept_stats[dept]['absent'] += 1
         
         attendance_data.append({
             'Employee ID': emp_id,
             'Name': employee.get('full_name', 'Unknown'),
-            'Department': dept,
+            'Department': employee.get('department', 'N/A'),
             'Status': record['status'].title(),
-            'Marked Time': record.get('created_at', datetime.now()).strftime('%I:%M %p'),
-            'Marked By': record.get('marked_by', 'System')
+            'Time': record.get('created_at', datetime.now()).strftime('%I:%M %p')
         })
         
         if record['status'] == 'present':
@@ -992,7 +631,7 @@ def show_enhanced_summary(db, date_start, date_end, attendance_date):
         else:
             absent_count += 1
     
-    # Enhanced summary stats
+    # Summary stats
     total = len(attendance_records)
     attendance_rate = (present_count / total * 100) if total > 0 else 0
     
@@ -1000,115 +639,52 @@ def show_enhanced_summary(db, date_start, date_end, attendance_date):
     <div class="stats-container">
         <div class="stat-box">
             <div class="stat-number">{total}</div>
-            <div class="stat-label">👥 Total</div>
+            <div class="stat-label">Total</div>
         </div>
         <div class="stat-box">
             <div class="stat-number">{present_count}</div>
-            <div class="stat-label">✅ Present</div>
+            <div class="stat-label">Present</div>
         </div>
         <div class="stat-box">
             <div class="stat-number">{absent_count}</div>
-            <div class="stat-label">❌ Absent</div>
+            <div class="stat-label">Absent</div>
         </div>
         <div class="stat-box">
             <div class="stat-number">{attendance_rate:.1f}%</div>
-            <div class="stat-label">📊 Rate</div>
+            <div class="stat-label">Rate</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # Department-wise breakdown
-    if dept_stats:
-        st.write("🏢 **Department-wise Breakdown:**")
-        dept_data = []
-        for dept, stats in dept_stats.items():
-            rate = (stats['present'] / stats['total'] * 100) if stats['total'] > 0 else 0
-            dept_data.append({
-                'Department': dept,
-                'Total': stats['total'],
-                'Present': stats['present'],
-                'Absent': stats['absent'],
-                'Attendance Rate': f"{rate:.1f}%"
-            })
-        
-        dept_df = pd.DataFrame(dept_data)
-        st.dataframe(dept_df, use_container_width=True, hide_index=True)
-    
-    # Detailed attendance data
-    st.write("📋 **Detailed Attendance Records:**")
+    # Show data
     if attendance_data:
         df = pd.DataFrame(attendance_data)
+        st.dataframe(df, use_container_width=True, hide_index=True)
         
-        # Add color coding
-        def color_status(val):
-            if val == 'Present':
-                return 'background-color: #c8e6c9'
-            elif val == 'Absent':
-                return 'background-color: #ffcdd2'
-            return ''
-        
-        styled_df = df.style.applymap(color_status, subset=['Status'])
-        st.dataframe(styled_df, use_container_width=True, hide_index=True)
-        
-        # Enhanced download section
-        st.markdown('<div class="download-section">', unsafe_allow_html=True)
-        st.write("📥 **Download Reports:**")
-        
-        col1, col2, col3 = st.columns(3)
+        # Download options
+        st.write("**Download:**")
+        col1, col2 = st.columns(2)
         
         with col1:
             csv_data = df.to_csv(index=False)
             st.download_button(
-                "📄 Download CSV",
+                "Download CSV",
                 csv_data,
                 f"attendance_{attendance_date.strftime('%Y-%m-%d')}.csv",
-                "text/csv",
-                use_container_width=True
+                "text/csv"
             )
         
         with col2:
             excel_buffer = BytesIO()
-            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                df.to_excel(writer, sheet_name='Attendance', index=False)
-                if dept_data:
-                    dept_df.to_excel(writer, sheet_name='Department Summary', index=False)
+            df.to_excel(excel_buffer, index=False)
             excel_data = excel_buffer.getvalue()
             
             st.download_button(
-                "📊 Download Excel",
+                "Download Excel",
                 excel_data,
-                f"attendance_report_{attendance_date.strftime('%Y-%m-%d')}.xlsx",
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
+                f"attendance_{attendance_date.strftime('%Y-%m-%d')}.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-        
-        with col3:
-            # Generate summary report
-            summary_text = f"""ATTENDANCE SUMMARY REPORT
-Date: {attendance_date.strftime('%A, %B %d, %Y')}
-Time Generated: {datetime.now().strftime('%I:%M %p')}
-
-OVERVIEW:
-- Total Employees: {total}
-- Present: {present_count} ({attendance_rate:.1f}%)
-- Absent: {absent_count} ({100-attendance_rate:.1f}%)
-
-DEPARTMENT BREAKDOWN:
-"""
-            for dept, stats in dept_stats.items():
-                rate = (stats['present'] / stats['total'] * 100) if stats['total'] > 0 else 0
-                summary_text += f"- {dept}: {stats['present']}/{stats['total']} ({rate:.1f}%)\n"
-            
-            st.download_button(
-                "📝 Summary Report",
-                summary_text,
-                f"attendance_summary_{attendance_date.strftime('%Y-%m-%d')}.txt",
-                "text/plain",
-                use_container_width=True
-            )
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-
 
 def edit_attendance():
     """Edit previously marked attendance"""
