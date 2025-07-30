@@ -343,507 +343,203 @@ import streamlit as st
 from io import BytesIO
 from datetime import datetime
 
-# Custom CSS for professional mobile-responsive design
 def inject_custom_css():
     st.markdown("""
     <style>
-    /* Import Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    
-    /* Global Styles */
+    /* Simple, clean styling */
     .main {
-        font-family: 'Inter', sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
+        font-family: Arial, sans-serif;
     }
     
-    .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    }
-    
-    /* Header Styles */
     .attendance-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem 1.5rem;
-        border-radius: 20px;
-        margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        background: #4CAF50;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
         color: white;
         text-align: center;
     }
     
-    .attendance-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin: 0;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .attendance-subtitle {
-        font-size: 1.1rem;
-        opacity: 0.9;
-        margin-top: 0.5rem;
-        font-weight: 300;
-    }
-    
-    /* Card Styles */
-    .attendance-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .attendance-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    }
-    
-    /* Employee Card Styles */
     .employee-card {
-        background: white;
-        border-radius: 12px;
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 8px;
         padding: 1rem;
-        margin-bottom: 0.75rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        border-left: 4px solid #667eea;
-        transition: all 0.2s ease;
-    }
-    
-    .employee-card:hover {
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
-        transform: translateX(2px);
+        margin-bottom: 0.5rem;
     }
     
     .employee-info {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 1rem;
-        margin-bottom: 0.75rem;
     }
     
-    .employee-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 0.9rem;
-        flex-shrink: 0;
-    }
-    
-    .employee-details h4 {
-        margin: 0;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #2d3748;
-    }
-    
-    .employee-details p {
-        margin: 0;
-        font-size: 0.875rem;
-        color: #718096;
-        line-height: 1.2;
-    }
-    
-    /* Status Indicators */
     .status-present {
-        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        background: #4CAF50;
         color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
     }
     
     .status-absent {
-        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        background: #f44336;
         color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
     }
     
-    /* Metrics Cards */
-    .metric-card {
+    .stats-container {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .stat-box {
         background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        border-top: 4px solid #667eea;
-    }
-    
-    .metric-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #2d3748;
-        margin: 0;
-    }
-    
-    .metric-label {
-        font-size: 0.875rem;
-        color: #718096;
-        font-weight: 500;
-        margin-top: 0.5rem;
-    }
-    
-    .metric-present .metric-value {
-        color: #38a169;
-    }
-    
-    .metric-absent .metric-value {
-        color: #e53e3e;
-    }
-    
-    /* Button Styles */
-    .stButton button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.75rem 2rem;
-        font-weight: 600;
-        font-size: 1rem;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    }
-    
-    .stButton button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-    
-    /* Radio Button Styles */
-    .stRadio > label {
-        font-weight: 500 !important;
-        color: #4a5568 !important;
-    }
-    
-    .stRadio > div[role="radiogroup"] > label {
-        background: #f7fafc;
-        border: 2px solid #e2e8f0;
+        border: 1px solid #ddd;
         border-radius: 8px;
-        padding: 0.5rem 1rem;
-        margin: 0.25rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .stRadio > div[role="radiogroup"] > label:hover {
-        border-color: #667eea;
-        background: #edf2f7;
-    }
-    
-    /* Mobile Responsiveness */
-    @media (max-width: 768px) {
-        .attendance-title {
-            font-size: 2rem;
-        }
-        
-        .attendance-header {
-            padding: 1.5rem 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .attendance-card {
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .employee-card {
-            padding: 0.75rem;
-        }
-        
-        .employee-info {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-        
-        .employee-avatar {
-            width: 40px;
-            height: 40px;
-            font-size: 0.8rem;
-        }
-        
-        .metric-value {
-            font-size: 2rem;
-        }
-    }
-    
-    /* Loading Animation */
-    .loading-spinner {
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #667eea;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        animation: spin 1s linear infinite;
-        margin: 20px auto;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    /* Success/Error Messages */
-    .stSuccess {
-        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-        color: white;
-        border-radius: 10px;
         padding: 1rem;
-        font-weight: 500;
+        text-align: center;
+        flex: 1;
     }
     
-    .stError {
-        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
-        color: white;
-        border-radius: 10px;
-        padding: 1rem;
-        font-weight: 500;
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
     }
     
-    .stInfo {
-        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-        color: white;
-        border-radius: 10px;
-        padding: 1rem;
-        font-weight: 500;
-    }
-    
-    /* Download Buttons */
-    .download-section {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-top: 1rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-    
-    /* Tab Styles */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background: white;
-        border-radius: 10px;
-        padding: 0.75rem 1.5rem;
-        border: 2px solid #e2e8f0;
-        font-weight: 500;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-color: #667eea;
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
     }
     </style>
     """, unsafe_allow_html=True)
 
 def mark_attendance():
-    """Professional mobile-responsive attendance marking interface"""
+    """Simple attendance marking interface"""
     
-    # Inject custom CSS
+    # Inject minimal CSS
     inject_custom_css()
     
-    # Header Section
+    # Simple header
     st.markdown("""
     <div class="attendance-header">
-        <h1 class="attendance-title">📋 Daily Attendance</h1>
-        <p class="attendance-subtitle">Mark employee attendance with ease</p>
+        <h2>📋 Daily Attendance</h2>
     </div>
     """, unsafe_allow_html=True)
     
-    # Date selection in a card
-    with st.container():
-        st.markdown('<div class="attendance-card">', unsafe_allow_html=True)
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            st.markdown("### 📅 Select Date")
-            attendance_date = st.date_input(
-                "Choose attendance date", 
-                value=datetime.now().date(), 
-                key="mark_attendance_date",
-                help="Select the date for marking attendance"
-            )
-        
-        with col2:
-            st.markdown("### ⏰ Current Time")
-            current_time = datetime.now().strftime("%I:%M %p")
-            st.markdown(f"<h3 style='color: #667eea; margin-top: 1rem;'>{current_time}</h3>", unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Date selection
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.write("**Select Date:**")
+        attendance_date = st.date_input(
+            "Date", 
+            value=datetime.now().date(),
+            key="attendance_date"
+        )
+    
+    with col2:
+        current_time = datetime.now().strftime("%I:%M %p")
+        st.write("**Current Time:**")
+        st.write(current_time)
     
     if attendance_date > datetime.now().date():
-        st.error("❌ Cannot mark attendance for future dates!")
+        st.error("Cannot mark attendance for future dates!")
         return
     
     db = get_database()
     
-    # Convert date to datetime range for MongoDB query
+    # Convert date to datetime range
     date_start = datetime.combine(attendance_date, datetime.min.time())
     date_end = datetime.combine(attendance_date, datetime.max.time())
     
-    # Check if attendance has been submitted for this date
+    # Check if attendance was already submitted
     attendance_submitted = st.session_state.get(f'attendance_submitted_{attendance_date}', False)
     
     if attendance_submitted:
-        show_attendance_summary(db, date_start, date_end, attendance_date)
-        
-        # Reset button
-        st.markdown('<div class="attendance-card">', unsafe_allow_html=True)
-        if st.button("✏️ Edit Attendance", use_container_width=True, type="primary"):
+        show_simple_summary(db, date_start, date_end, attendance_date)
+        if st.button("Edit Attendance"):
             st.session_state[f'attendance_submitted_{attendance_date}'] = False
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
         return
     
-    # Check existing attendance
+    # Get existing attendance
     existing_attendance = list(db.attendance.find({
         "date": {"$gte": date_start, "$lte": date_end}
     }))
     existing_dict = {record['employee_id']: record for record in existing_attendance}
     
-    # Get employees who haven't been marked as present yet
-    marked_present_employee_ids = [
-        record['employee_id'] for record in existing_attendance 
-        if record['status'] == 'present'
-    ]
-    
-    # Get all active employees sorted by employee_id
+    # Get all active employees
     all_employees = list(db.employees.find({
         "is_active": True
     }).sort("employee_id", 1))
     
-    # Filter employees based on existing attendance
-    if existing_attendance:
-        employees = [emp for emp in all_employees if emp['employee_id'] not in marked_present_employee_ids]
-    else:
-        employees = all_employees
-    
-    if not employees and not existing_attendance:
-        st.info("ℹ️ No active employees found.")
+    if not all_employees:
+        st.info("No active employees found.")
         return
     
-    if not employees and existing_attendance:
-        st.success("✅ All active employees have been marked as present for this date!")
-        show_attendance_summary(db, date_start, date_end, attendance_date)
-        return
+    # Simple stats
+    marked_present = len([r for r in existing_attendance if r['status'] == 'present'])
+    marked_absent = len([r for r in existing_attendance if r['status'] == 'absent'])
+    total = len(all_employees)
     
-    # Statistics Section
-    total_employees = len(all_employees)
-    already_marked = len(marked_present_employee_ids)
-    remaining = len(employees)
-    
-    st.markdown('<div class="attendance-card">', unsafe_allow_html=True)
-    st.markdown("### 📊 Quick Stats")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">{total_employees}</div>
-            <div class="metric-label">Total Employees</div>
+    st.markdown(f"""
+    <div class="stats-container">
+        <div class="stat-box">
+            <div class="stat-number">{total}</div>
+            <div class="stat-label">Total</div>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card metric-present">
-            <div class="metric-value">{already_marked}</div>
-            <div class="metric-label">Already Marked</div>
+        <div class="stat-box">
+            <div class="stat-number">{marked_present}</div>
+            <div class="stat-label">Present</div>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">{remaining}</div>
-            <div class="metric-label">Remaining</div>
+        <div class="stat-box">
+            <div class="stat-number">{marked_absent}</div>
+            <div class="stat-label">Absent</div>
         </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
     
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Search
+    search_term = st.text_input("Search employees:", placeholder="Search by name or ID")
     
-    # Search and Filter Section
-    st.markdown('<div class="attendance-card">', unsafe_allow_html=True)
-    st.markdown("### 🔍 Search & Filter")
-    
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        search_term = st.text_input("🔍 Search employees...", placeholder="Search by name or employee ID")
-    with col2:
-        filter_dept = st.selectbox("🏢 Filter by Department", 
-                                  options=["All"] + list(set([emp.get('department', 'N/A') for emp in employees])))
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Filter employees based on search and filter
-    filtered_employees = employees
+    # Filter employees
+    filtered_employees = all_employees
     if search_term:
-        filtered_employees = [emp for emp in filtered_employees 
+        filtered_employees = [emp for emp in all_employees 
                             if search_term.lower() in emp['full_name'].lower() or 
                                search_term.lower() in emp['employee_id'].lower()]
     
-    if filter_dept != "All":
-        filtered_employees = [emp for emp in filtered_employees 
-                            if emp.get('department', 'N/A') == filter_dept]
+    st.write(f"**Mark Attendance ({len(filtered_employees)} employees):**")
     
-    st.markdown(f"### 👥 Mark Attendance ({len(filtered_employees)} employees)")
-    
-    if existing_attendance:
-        st.info(f"ℹ️ Showing remaining employees. {len(marked_present_employee_ids)} employees already marked as present.")
-    
-    # Attendance Form
+    # Attendance form
     with st.form("attendance_form"):
         attendance_data = {}
         
         # Bulk actions
-        st.markdown("#### ⚡ Quick Actions")
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         with col1:
-            if st.form_submit_button("✅ Mark All Present", use_container_width=True):
+            if st.form_submit_button("Mark All Present"):
                 for emp in filtered_employees:
                     attendance_data[emp['employee_id']] = 'present'
         with col2:
-            if st.form_submit_button("❌ Mark All Absent", use_container_width=True):
+            if st.form_submit_button("Mark All Absent"):
                 for emp in filtered_employees:
                     attendance_data[emp['employee_id']] = 'absent'
-        with col3:
-            if st.form_submit_button("🔄 Reset All", use_container_width=True):
-                attendance_data = {}
         
-        st.markdown("---")
-        st.markdown("#### 👤 Individual Attendance")
+        st.write("---")
         
-        # Employee attendance marking
-        for i, employee in enumerate(filtered_employees):
-            # Generate initials for avatar
-            name_parts = employee['full_name'].split()
-            initials = ''.join([part[0].upper() for part in name_parts[:2]])
-            
+        # Individual attendance
+        for employee in filtered_employees:
             st.markdown(f"""
             <div class="employee-card">
                 <div class="employee-info">
-                    <div class="employee-avatar">{initials}</div>
-                    <div class="employee-details">
-                        <h4>{employee['full_name']}</h4>
-                        <p><strong>ID:</strong> {employee['employee_id']} | <strong>Dept:</strong> {employee.get('department', 'N/A')}</p>
-                        <p><strong>Designation:</strong> {employee.get('designation', 'N/A')}</p>
+                    <div>
+                        <strong>{employee['full_name']}</strong><br>
+                        ID: {employee['employee_id']} | Dept: {employee.get('department', 'N/A')}
                     </div>
                 </div>
             </div>
@@ -851,87 +547,60 @@ def mark_attendance():
             
             # Status selection
             current_status = existing_dict.get(employee['employee_id'], {}).get('status', 'present')
-            col1, col2 = st.columns([1, 1])
             
-            with col1:
-                if st.radio(f"", 
-                           ['✅ Present', '❌ Absent'],
-                           index=0 if current_status == 'present' else 1,
-                           key=f"status_{employee['employee_id']}",
-                           horizontal=True) == '✅ Present':
-                    attendance_data[employee['employee_id']] = 'present'
-                else:
-                    attendance_data[employee['employee_id']] = 'absent'
+            status = st.radio(
+                f"Status for {employee['employee_id']}", 
+                ['Present', 'Absent'],
+                index=0 if current_status == 'present' else 1,
+                key=f"status_{employee['employee_id']}",
+                horizontal=True
+            )
             
-            with col2:
-                if employee['employee_id'] in existing_dict:
-                    if existing_dict[employee['employee_id']]['status'] == 'absent':
-                        st.markdown('<span class="status-absent">Previously Absent</span>', unsafe_allow_html=True)
-            
-            if i < len(filtered_employees) - 1:
-                st.markdown("---")
+            attendance_data[employee['employee_id']] = status.lower()
         
-        # Submit button
-        st.markdown("### 💾 Save Attendance")
-        submitted = st.form_submit_button(
-            "💾 Save All Attendance Records", 
-            use_container_width=True, 
-            type="primary"
-        )
-        
-        if submitted:
-            # Show loading spinner
-            with st.spinner('Saving attendance records...'):
-                records_updated = 0
-                records_inserted = 0
+        # Submit
+        if st.form_submit_button("Save Attendance", type="primary"):
+            records_saved = 0
+            
+            for emp_id, status in attendance_data.items():
+                record_data = {
+                    "employee_id": emp_id,
+                    "date": datetime.combine(attendance_date, datetime.min.time()),
+                    "status": status,
+                    "marked_by": st.session_state.user_data['username'],
+                    "created_at": datetime.now()
+                }
                 
-                for emp_id, status in attendance_data.items():
-                    record_data = {
-                        "employee_id": emp_id,
-                        "date": datetime.combine(attendance_date, datetime.min.time()),
-                        "status": status,
-                        "marked_by": st.session_state.user_data['username'],
-                        "created_at": datetime.now()
-                    }
-                    
-                    try:
-                        if emp_id in existing_dict:
-                            db.attendance.update_one(
-                                {"employee_id": emp_id, "date": {"$gte": date_start, "$lte": date_end}},
-                                {"$set": {**record_data, "updated_at": datetime.now()}}
-                            )
-                            records_updated += 1
-                        else:
-                            db.attendance.insert_one(record_data)
-                            records_inserted += 1
-                    
-                    except Exception as e:
-                        st.error(f"❌ Error saving attendance for {emp_id}: {e}")
-                
-                st.success(f"✅ Attendance saved successfully! {records_inserted} new records, {records_updated} updated.")
-                
-                # Set flag to show summary
+                try:
+                    if emp_id in existing_dict:
+                        db.attendance.update_one(
+                            {"employee_id": emp_id, "date": {"$gte": date_start, "$lte": date_end}},
+                            {"$set": {**record_data, "updated_at": datetime.now()}}
+                        )
+                    else:
+                        db.attendance.insert_one(record_data)
+                    records_saved += 1
+                except Exception as e:
+                    st.error(f"Error saving attendance for {emp_id}: {e}")
+            
+            if records_saved > 0:
+                st.success(f"Attendance saved for {records_saved} employees!")
                 st.session_state[f'attendance_submitted_{attendance_date}'] = True
                 st.rerun()
 
-
-def show_attendance_summary(db, date_start, date_end, attendance_date):
-    """Professional attendance summary with mobile-responsive design"""
+def show_simple_summary(db, date_start, date_end, attendance_date):
+    """Simple attendance summary"""
     
-    st.markdown("""
-    <div class="attendance-card">
-        <h2 style="color: #667eea; margin-bottom: 1rem;">📊 Attendance Summary</h2>
-        <p style="color: #718096; font-size: 1.1rem;"><strong>Date:</strong> {}</p>
-    </div>
-    """.format(format_date_for_display(attendance_date)), unsafe_allow_html=True)
+    st.write("## Attendance Summary")
+    st.write(f"**Date:** {attendance_date.strftime('%B %d, %Y')}")
     
-    # Get attendance records
+    # Get records
     attendance_records = list(db.attendance.find({
         "date": {"$gte": date_start, "$lte": date_end}
     }))
     
     if not attendance_records:
-        st.info("ℹ️ No attendance records found for this date.")
+        st.info("No attendance records found.")
         return
     
     # Get employee details
@@ -942,194 +611,81 @@ def show_attendance_summary(db, date_start, date_end, attendance_date):
     employee_dict = {emp['employee_id']: emp for emp in employees}
     
     # Prepare data
-    present_employees = []
-    absent_employees = []
+    attendance_data = []
+    present_count = 0
+    absent_count = 0
     
     for record in attendance_records:
         emp_id = record['employee_id']
         employee = employee_dict.get(emp_id, {})
         
-        emp_data = {
+        attendance_data.append({
             'Employee ID': emp_id,
             'Name': employee.get('full_name', 'Unknown'),
             'Department': employee.get('department', 'N/A'),
-            'Designation': employee.get('designation', 'N/A'),
             'Status': record['status'].title(),
-            'Marked By': record.get('marked_by', 'N/A'),
             'Time': record.get('created_at', datetime.now()).strftime('%I:%M %p')
-        }
+        })
         
         if record['status'] == 'present':
-            present_employees.append(emp_data)
+            present_count += 1
         else:
-            absent_employees.append(emp_data)
+            absent_count += 1
     
-    # Sort by Employee ID
-    present_employees.sort(key=lambda x: x['Employee ID'])
-    absent_employees.sort(key=lambda x: x['Employee ID'])
+    # Summary stats
+    total = len(attendance_records)
+    attendance_rate = (present_count / total * 100) if total > 0 else 0
     
-    # Summary metrics
-    st.markdown('<div class="attendance-card">', unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">{len(attendance_records)}</div>
-            <div class="metric-label">Total</div>
+    st.markdown(f"""
+    <div class="stats-container">
+        <div class="stat-box">
+            <div class="stat-number">{total}</div>
+            <div class="stat-label">Total</div>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card metric-present">
-            <div class="metric-value">{len(present_employees)}</div>
-            <div class="metric-label">Present</div>
+        <div class="stat-box">
+            <div class="stat-number">{present_count}</div>
+            <div class="stat-label">Present</div>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card metric-absent">
-            <div class="metric-value">{len(absent_employees)}</div>
-            <div class="metric-label">Absent</div>
+        <div class="stat-box">
+            <div class="stat-number">{absent_count}</div>
+            <div class="stat-label">Absent</div>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col4:
-        attendance_rate = (len(present_employees) / len(attendance_records) * 100) if attendance_records else 0
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">{attendance_rate:.1f}%</div>
-            <div class="metric-label">Attendance Rate</div>
+        <div class="stat-box">
+            <div class="stat-number">{attendance_rate:.1f}%</div>
+            <div class="stat-label">Rate</div>
         </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
     
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Tabbed view for present/absent employees
-    tab1, tab2 = st.tabs([f"✅ Present ({len(present_employees)})", f"❌ Absent ({len(absent_employees)})"])
-    
-    with tab1:
-        if present_employees:
-            present_df = pd.DataFrame(present_employees)
-            st.dataframe(
-                present_df, 
-                use_container_width=True, 
-                hide_index=True,
-                column_config={
-                    "Status": st.column_config.TextColumn(
-                        "Status",
-                        help="Attendance Status"
-                    )
-                }
-            )
-        else:
-            st.info("ℹ️ No employees marked as present.")
-    
-    with tab2:
-        if absent_employees:
-            absent_df = pd.DataFrame(absent_employees)
-            st.dataframe(
-                absent_df, 
-                use_container_width=True, 
-                hide_index=True,
-                column_config={
-                    "Status": st.column_config.TextColumn(
-                        "Status",
-                        help="Attendance Status"
-                    )
-                }
-            )
-        else:
-            st.success("✅ No employees marked as absent.")
-    
-    # Download section
-    st.markdown('<div class="download-section">', unsafe_allow_html=True)
-    st.markdown("### 📥 Download Reports")
-    
-    # Prepare combined data
-    all_employees_data = present_employees + absent_employees
-    all_employees_data.sort(key=lambda x: x['Employee ID'])
-    
-    if all_employees_data:
-        combined_df = pd.DataFrame(all_employees_data)
+    # Show data
+    if attendance_data:
+        df = pd.DataFrame(attendance_data)
+        st.dataframe(df, use_container_width=True, hide_index=True)
         
-        col1, col2, col3 = st.columns(3)
+        # Download options
+        st.write("**Download:**")
+        col1, col2 = st.columns(2)
         
         with col1:
-            # CSV download
-            csv_buffer = BytesIO()
-            combined_df.to_csv(csv_buffer, index=False)
-            csv_data = csv_buffer.getvalue()
-            
+            csv_data = df.to_csv(index=False)
             st.download_button(
-                label="📄 Download CSV",
-                data=csv_data,
-                file_name=f"attendance_{attendance_date.strftime('%Y-%m-%d')}.csv",
-                mime="text/csv",
-                use_container_width=True
+                "Download CSV",
+                csv_data,
+                f"attendance_{attendance_date.strftime('%Y-%m-%d')}.csv",
+                "text/csv"
             )
         
         with col2:
-            # Excel download
             excel_buffer = BytesIO()
-            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                combined_df.to_excel(writer, sheet_name='Attendance', index=False)
-                if present_employees:
-                    pd.DataFrame(present_employees).to_excel(writer, sheet_name='Present', index=False)
-                if absent_employees:
-                    pd.DataFrame(absent_employees).to_excel(writer, sheet_name='Absent', index=False)
-            
+            df.to_excel(excel_buffer, index=False)
             excel_data = excel_buffer.getvalue()
             
             st.download_button(
-                label="📊 Download Excel",
-                data=excel_data,
-                file_name=f"attendance_{attendance_date.strftime('%Y-%m-%d')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
+                "Download Excel",
+                excel_data,
+                f"attendance_{attendance_date.strftime('%Y-%m-%d')}.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-        
-        with col3:
-            # JSON download
-            json_data = combined_df.to_json(orient='records', indent=2)
-            
-            st.download_button(
-                label="📱 Download JSON",
-                data=json_data,
-                file_name=f"attendance_{attendance_date.strftime('%Y-%m-%d')}.json",
-                mime="application/json",
-                use_container_width=True
-            )
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Quick summary for sharing
-    st.markdown('<div class="attendance-card">', unsafe_allow_html=True)
-    st.markdown("### 📱 Quick Summary")
-    summary_text = f"""
-📋 Attendance Summary - {format_date_for_display(attendance_date)}
-{'='*50}
-📊 Total Employees: {len(attendance_records)}
-✅ Present: {len(present_employees)}
-❌ Absent: {len(absent_employees)}
-📈 Attendance Rate: {attendance_rate:.1f}%
-
-✅ Present Employees:
-{chr(10).join([f"• {emp['Name']} ({emp['Employee ID']})" for emp in present_employees]) if present_employees else "None"}
-
-❌ Absent Employees:
-{chr(10).join([f"• {emp['Name']} ({emp['Employee ID']})" for emp in absent_employees]) if absent_employees else "None"}
-"""
-    
-    st.text_area("📋 Copy this summary:", summary_text, height=200)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# Helper function for date formatting
-def format_date_for_display(date):
-    """Format date for display"""
-    return date.strftime("%B %d, %Y")
 
 
 def edit_attendance():
