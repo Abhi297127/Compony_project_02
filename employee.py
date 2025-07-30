@@ -571,9 +571,6 @@ def view_tbt_images():
     if 'tbt_data' not in st.session_state:
         st.session_state.tbt_data = None
         st.session_state.tbt_params = None
-        st.session_state.recent_tbt_data = None
-        st.session_state.recent_tbt_last_update = None
-        st.session_state.selected_image_modal = None
     
     db = get_cached_database()
     
@@ -724,22 +721,6 @@ def view_tbt_images():
     else:
         st.info("📭 No recent TBT images found.")
     
-    # Mobile-friendly help section
-    # with st.expander("ℹ️ Help & Tips"):
-    #     st.markdown("""
-    #     **📱 Mobile Usage Tips:**
-    #     - Use **📥 Download** buttons to save images to your device
-    #     - **🔄 Refresh** button updates the current date's images
-    #     - **Recent Images** shows the last 5 uploaded images
-        
-    #     **💡 Troubleshooting:**
-    #     - If download doesn't work, try using a different browser
-    #     - On iOS, downloaded images go to your Photos app
-    #     - On Android, check your Downloads folder
-    #     """)
-    
-    # # Add some mobile-friendly spacing
-    # st.markdown("<br>", unsafe_allow_html=True)
 
 
 def request_attendance():
