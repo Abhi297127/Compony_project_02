@@ -360,92 +360,157 @@ def mark_attendance():
     }))
     existing_dict = {record['employee_id']: record for record in existing_attendance}
     
-    # Get employees who haven't been marked as present yet
-    marked_present_employee_ids = [
-        record['employee_id'] for record in existing_attendance 
-        if record['status'] == 'present'
-    ]
+    # Get employees who haven't been marked at all (neither present nor absent)
+    marked_employee_ids = [record['employee_id'] for record in existing_attendance]
     
-    # Get all active employees excluding those already marked as present
+    # Get all active employees excluding those already marked (present or absent)
     employees = list(db.employees.find({
         "is_active": True,
-        "employee_id": {"$nin": marked_present_employee_ids}
+        "employee_id": {"$nin": marked_employee_ids}
     }).sort("full_name", 1))
     
+    # Display attendance summary table if there are existing records
+    if existing_attendance:
+        st.write(f"### Attendance Summary for {format_date_for_display(attendance_date)}")
+        
+        # Create summary table
+        summary_data = []
+        present_count = 0
+        absent_count = 0
+        
+        for record in existing_attendance:
+            # Get employee details
+            employee = db.employees.find_one({"employee_id": record['employee_id']})
+            employee_name = employee['full_name'] if employee else "Unknown"
+            
+            summary_data.append({
+                "Employee ID": record['employee_id'],
+                "Employee Name": employee_name,
+                "Status": record['status'].title(),
+                "Marked By": record.get('marked_by', 'N/A'),
+                "Time": record.get('created_at', record.get('updated_at', 'N/A'))
+            })
+            
+            if record['status'] == 'present':
+                present_count += 1
+            else:
+                absent_count += 1
+        
+        # Display summary stats
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Present", present_count, delta=None)
+        with col2:
+            st.metric("Absent", absent_count, delta=None)
+        with col3:
+            st.metric("Total Marked", len(existing_attendance), delta=None)
+        
+        # Display attendance table
+        if summary_data:
+            df = pd.DataFrame(summary_data)
+            st.dataframe(df, use_container_width=True)
+    
+    # Show remaining employees to mark
     if not employees:
-        if marked_present_employee_ids:
-            st.success("All active employees have been marked as present for this date!")
+        if existing_attendance:
+            st.success(f"✅ All active employees have been marked for {format_date_for_display(attendance_date)}!")
         else:
             st.info("No active employees found.")
         return
     
-    st.write(f"### Marking Attendance for {format_date_for_display(attendance_date)}")
-    
-    if existing_attendance:
-        st.info(f"Showing remaining employees. {len(marked_present_employee_ids)} employees already marked as present.")
+    st.write(f"### Mark Remaining Employees for {format_date_for_display(attendance_date)}")
+    st.info(f"📝 {len(employees)} employees remaining to mark attendance")
     
     # Attendance form
     with st.form("attendance_form"):
         attendance_data = {}
         
-        for employee in employees:
-            col1, col2, col3 = st.columns([3, 2, 1])
+        # Display employees in a more organized way
+        st.write("**Select attendance status for each employee:**")
+        
+        for i, employee in enumerate(employees):
+            col1, col2 = st.columns([3, 2])
             
             with col1:
                 st.write(f"**{employee['full_name']}** ({employee['employee_id']})")
             
             with col2:
-                current_status = existing_dict.get(employee['employee_id'], {}).get('status', 'present')
                 status = st.radio(
-                    f"Status for {employee['employee_id']}", 
+                    f"Status", 
                     ['present', 'absent'],
-                    index=0 if current_status == 'present' else 1,
+                    index=0,  # Default to present
                     key=f"status_{employee['employee_id']}",
                     horizontal=True
                 )
                 attendance_data[employee['employee_id']] = status
             
-            with col3:
-                if employee['employee_id'] in existing_dict:
-                    if existing_dict[employee['employee_id']]['status'] == 'absent':
-                        st.warning("⚠️ Absent")
+            # Add separator line except for last employee
+            if i < len(employees) - 1:
+                st.divider()
         
-        submitted = st.form_submit_button("Save Attendance")
+        col1, col2 = st.columns([1, 4])
+        with col1:
+            submitted = st.form_submit_button("💾 Save Attendance", type="primary")
+        with col2:
+            if st.form_submit_button("🔄 Refresh List"):
+                st.rerun()
         
         if submitted:
-            records_updated = 0
+            if not attendance_data:
+                st.error("No attendance data to save!")
+                return
+                
             records_inserted = 0
+            errors = []
             
-            for emp_id, status in attendance_data.items():
-                # Store as datetime for MongoDB compatibility
-                record_data = {
-                    "employee_id": emp_id,
-                    "date": datetime.combine(attendance_date, datetime.min.time()),
-                    "status": status,
-                    "marked_by": st.session_state.user_data['username'],
-                    "created_at": datetime.now()
-                }
-                
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            for i, (emp_id, status) in enumerate(attendance_data.items()):
                 try:
-                    if emp_id in existing_dict:
-                        # Update existing record
-                        db.attendance.update_one(
-                            {"employee_id": emp_id, "date": {"$gte": date_start, "$lte": date_end}},
-                            {"$set": {**record_data, "updated_at": datetime.now()}}
-                        )
-                        records_updated += 1
-                    else:
-                        # Insert new record
-                        db.attendance.insert_one(record_data)
-                        records_inserted += 1
-                
+                    # Store as datetime for MongoDB compatibility  
+                    record_data = {
+                        "employee_id": emp_id,
+                        "date": datetime.combine(attendance_date, datetime.min.time()),
+                        "status": status,
+                        "marked_by": st.session_state.user_data['username'],
+                        "created_at": datetime.now()
+                    }
+                    
+                    # Insert new record (since we're only showing unmarked employees)
+                    db.attendance.insert_one(record_data)
+                    records_inserted += 1
+                    
+                    # Update progress
+                    progress = (i + 1) / len(attendance_data)
+                    progress_bar.progress(progress)
+                    status_text.text(f"Saving... {i + 1}/{len(attendance_data)}")
+                    
                 except Exception as e:
-                    st.error(f"Error saving attendance for {emp_id}: {e}")
+                    errors.append(f"Error saving attendance for {emp_id}: {str(e)}")
             
-            st.success(f"Attendance saved! {records_inserted} new records, {records_updated} updated.")
-            # Rerun to refresh the employee list and hide present employees
-            st.rerun()
+            # Clear progress indicators
+            progress_bar.empty()
+            status_text.empty()
+            
+            # Show results
+            if errors:
+                st.error("Some errors occurred:")
+                for error in errors:
+                    st.error(error)
+            
+            if records_inserted > 0:
+                st.success(f"✅ Attendance saved successfully! {records_inserted} records added.")
+                st.balloons()  # Celebration effect
+                
+                # Auto-refresh after successful save
+                time.sleep(1)
+                st.rerun()
 
+# Helper function to format date for display
+def format_date_for_display(date_obj):
+    """Format date for better display"""
+    return date_obj.strftime("%B %d, %Y (%A)")
 
 
 def edit_attendance():
