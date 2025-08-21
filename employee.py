@@ -174,6 +174,7 @@ def show_attendance_list(employee_id):
     # Initialize session state for this function
     if 'attendance_list_data' not in st.session_state:
         st.session_state.attendance_list_data = None
+        st.session_state.attendance_list_edit_logs = {}
         st.session_state.attendance_list_params = None
     
     db = get_cached_database()
@@ -232,10 +233,12 @@ def show_attendance_list(employee_id):
         
         # Cache the data
         st.session_state.attendance_list_data = attendance_records
+        st.session_state.attendance_list_edit_logs = edit_logs_map
         st.session_state.attendance_list_params = current_params
     else:
         # Use cached data
         attendance_records = st.session_state.attendance_list_data
+        edit_logs_map = st.session_state.attendance_list_edit_logs
     
     if attendance_records:
         # Create DataFrame for display
