@@ -209,28 +209,26 @@ def show_attendance_list(employee_id):
         start_datetime = datetime.combine(start_date, datetime.min.time())
         end_datetime = datetime.combine(end_date, datetime.max.time())
         
-        # Get attendance records with aggregation to include edit history
-        pipeline = [
-            {
-                "$match": {
-                    "employee_id": employee_id,
-                    "date": {"$gte": start_datetime, "$lte": end_datetime}
-                }
-            },
-            {
-                "$lookup": {
-                    "from": "edit_logs",
-                    "localField": "_id",
-                    "foreignField": "attendance_id",
-                    "as": "edit_history"
-                }
-            },
-            {
-                "$sort": {"date": -1}
-            }
-        ]
+        # Get attendance records
+        attendance_records = list(db.attendance.find({
+            "employee_id": employee_id,
+            "date": {"$gte": start_datetime, "$lte": end_datetime}
+        }).sort("date", -1))
         
-        attendance_records = list(db.attendance.aggregate(pipeline))
+        # Get edit logs for these attendance records
+        attendance_ids = [record['_id'] for record in attendance_records]
+        edit_logs = list(db.edit_logs.find({
+            "employee_id": employee_id,
+            "date": {"$gte": start_datetime, "$lte": end_datetime}
+        }))
+        
+        # Create a mapping of attendance records to their edit logs
+        edit_logs_map = {}
+        for log in edit_logs:
+            date_key = log['date'].date() if isinstance(log['date'], datetime) else log['date']
+            if date_key not in edit_logs_map:
+                edit_logs_map[date_key] = []
+            edit_logs_map[date_key].append(log)
         
         # Cache the data
         st.session_state.attendance_list_data = attendance_records
@@ -252,12 +250,12 @@ def show_attendance_list(employee_id):
             # Get the main note from attendance record
             main_note = record.get('note', '')
             
-            # Collect edit history notes/reasons
+            # Get edit history for this date
             edit_reasons = []
-            if 'edit_history' in record and record['edit_history']:
-                for edit in record['edit_history']:
+            if display_date in edit_logs_map:
+                for edit in edit_logs_map[display_date]:
                     reason = edit.get('reason', '')
-                    if reason:
+                    if reason and reason.strip():
                         edited_by = edit.get('edited_by', 'Unknown')
                         edit_date = edit.get('edited_at', '')
                         if edit_date:
@@ -311,7 +309,7 @@ def show_attendance_list(employee_id):
                 display_date = record['date']
             
             main_note = record.get('note', '')
-            edit_history = record.get('edit_history', [])
+            edit_history = edit_logs_map.get(display_date, [])
             
             # Only show expander if there are notes or edit history
             if main_note or edit_history:
