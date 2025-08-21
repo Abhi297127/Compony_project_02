@@ -272,12 +272,20 @@ def show_attendance_list(employee_id):
                         else:
                             edit_reasons.append(f"{edited_by}: {reason}")
             
-            # Combine all notes
+            # Combine all notes - show only reasons without prefixes
             all_notes = []
             if main_note and main_note.strip():
-                all_notes.append(f"Note: {main_note}")
+                all_notes.append(main_note)
+            
+            # Extract only the reason part from edit history
             if edit_reasons:
-                all_notes.extend([f"Edit: {reason}" for reason in edit_reasons])
+                for reason in edit_reasons:
+                    # Extract just the reason part after the colon
+                    if ': ' in reason:
+                        reason_part = reason.split(': ', 1)[1]  # Split only on first occurrence
+                        all_notes.append(reason_part)
+                    else:
+                        all_notes.append(reason)
             
             combined_notes = " | ".join(all_notes) if all_notes else "-"
             
@@ -297,12 +305,33 @@ def show_attendance_list(employee_id):
             df, 
             use_container_width=True,
             column_config={
+                "Date": st.column_config.TextColumn(
+                    "Date",
+                    width="small"
+                ),
+                "Status": st.column_config.TextColumn(
+                    "Status",
+                    width="small"
+                ),
+                "Marked By": st.column_config.TextColumn(
+                    "Marked By",
+                    width="small"
+                ),
+                "Created At": st.column_config.TextColumn(
+                    "Created At",
+                    width="medium"
+                ),
+                "Last Updated": st.column_config.TextColumn(
+                    "Last Updated",
+                    width="medium"
+                ),
                 "Notes & Reasons": st.column_config.TextColumn(
                     "Notes & Reasons",
-                    help="Main notes and edit reasons",
+                    help="Attendance notes and edit reasons",
                     width="large"
                 )
-            }
+            },
+            height=400
         )
         
         # Option to view detailed notes in expandable format
