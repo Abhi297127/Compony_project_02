@@ -203,8 +203,10 @@ def show_attendance_list(employee_id):
         'custom_range': custom_range
     }
     
-    # Only fetch data if parameters changed
-    if st.session_state.attendance_list_params != current_params:
+    # Only fetch data if parameters changed or data doesn't exist
+    if (st.session_state.attendance_list_params != current_params or 
+        st.session_state.attendance_list_data is None):
+        
         # Convert date objects to datetime objects for MongoDB query
         start_datetime = datetime.combine(start_date, datetime.min.time())
         end_datetime = datetime.combine(end_date, datetime.max.time())
@@ -236,11 +238,11 @@ def show_attendance_list(employee_id):
             'edit_logs_map': edit_logs_map
         }
         st.session_state.attendance_list_params = current_params
-    else:
-        # Use cached data
-        cached_data = st.session_state.attendance_list_data
-        attendance_records = cached_data['attendance_records']
-        edit_logs_map = cached_data['edit_logs_map']
+    
+    # Use cached data (now guaranteed to exist)
+    cached_data = st.session_state.attendance_list_data
+    attendance_records = cached_data['attendance_records']
+    edit_logs_map = cached_data['edit_logs_map']
     
     if attendance_records:
         # Create DataFrame for display with enhanced notes
