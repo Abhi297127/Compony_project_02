@@ -168,7 +168,7 @@ def my_attendance():
         show_attendance_summary(employee_id)
 
 def show_attendance_list(employee_id):
-    """Show attendance in list format"""
+    """Show attendance in list format with detailed notes and reasons"""
     st.write("### Attendance Records")
     
     # Initialize session state for this function
@@ -215,15 +215,35 @@ def show_attendance_list(employee_id):
             "date": {"$gte": start_datetime, "$lte": end_datetime}
         }).sort("date", -1))
         
+        # Get edit logs for the same period to fetch additional reasons
+        edit_logs = list(db.edit_logs.find({
+            "employee_id": employee_id,
+            "date": {"$gte": start_datetime, "$lte": end_datetime}
+        }).sort("edited_at", -1))
+        
+        # Create a mapping of attendance records to their edit logs
+        edit_logs_map = {}
+        for log in edit_logs:
+            # Use date as key to match with attendance records
+            log_date = log['date'].date() if isinstance(log['date'], datetime) else log['date']
+            if log_date not in edit_logs_map:
+                edit_logs_map[log_date] = []
+            edit_logs_map[log_date].append(log)
+        
         # Cache the data
-        st.session_state.attendance_list_data = attendance_records
+        st.session_state.attendance_list_data = {
+            'attendance_records': attendance_records,
+            'edit_logs_map': edit_logs_map
+        }
         st.session_state.attendance_list_params = current_params
     else:
         # Use cached data
-        attendance_records = st.session_state.attendance_list_data
+        cached_data = st.session_state.attendance_list_data
+        attendance_records = cached_data['attendance_records']
+        edit_logs_map = cached_data['edit_logs_map']
     
     if attendance_records:
-        # Create DataFrame for display
+        # Create DataFrame for display with enhanced notes
         display_data = []
         for record in attendance_records:
             # Handle both date and datetime objects for display
@@ -232,20 +252,69 @@ def show_attendance_list(employee_id):
             else:
                 display_date = record['date']
             
+            # Get notes from attendance record
+            attendance_note = record.get('note', '')
+            
+            # Get additional reasons from edit logs
+            edit_reasons = []
+            if display_date in edit_logs_map:
+                for edit_log in edit_logs_map[display_date]:
+                    reason = edit_log.get('reason', '')
+                    if reason and reason not in edit_reasons:
+                        edit_reasons.append(reason)
+            
+            # Combine all notes and reasons
+            all_notes = []
+            if attendance_note and attendance_note != '-':
+                all_notes.append(f"Note: {attendance_note}")
+            
+            for reason in edit_reasons:
+                all_notes.append(f"Edit Reason: {reason}")
+            
+            # Join all notes or show '-' if none
+            combined_notes = " | ".join(all_notes) if all_notes else '-'
+            
+            # Check if record was edited
+            was_edited = display_date in edit_logs_map and len(edit_logs_map[display_date]) > 0
+            status_display = record['status'].title()
+            if was_edited:
+                status_display += " (Edited)"
+            
             display_data.append({
                 'Date': format_date_for_display(display_date),
-                'Status': record['status'].title(),
+                'Status': status_display,
                 'Marked By': record.get('marked_by', 'System'),
-                'Notes': record.get('note', '-')
+                'Notes/Reasons': combined_notes,
+                'Last Modified': get_last_modified_time(record, edit_logs_map.get(display_date, []))
             })
         
         df = pd.DataFrame(display_data)
-        st.dataframe(df, use_container_width=True)
+        
+        # Display with enhanced styling
+        st.dataframe(
+            df, 
+            use_container_width=True,
+            column_config={
+                "Notes/Reasons": st.column_config.TextColumn(
+                    "Notes/Reasons",
+                    width="large",
+                    help="Attendance notes and edit reasons"
+                ),
+                "Status": st.column_config.TextColumn(
+                    "Status",
+                    width="medium"
+                ),
+                "Last Modified": st.column_config.TextColumn(
+                    "Last Modified",
+                    width="medium"
+                )
+            }
+        )
         
         # Show statistics
         stats = calculate_attendance_stats(attendance_records)
         
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             st.metric("Total Days", stats['total_days'])
         with col2:
@@ -254,9 +323,73 @@ def show_attendance_list(employee_id):
             st.metric("Absent", stats['absent_days'])
         with col4:
             st.metric("Attendance %", f"{stats['attendance_percentage']}%")
+        with col5:
+            # Count edited records
+            edited_count = sum(1 for record in attendance_records 
+                             if (record['date'].date() if isinstance(record['date'], datetime) else record['date']) in edit_logs_map)
+            st.metric("Edited Records", edited_count)
+        
+        # Show detailed notes section if there are any notes
+        notes_exist = any(item['Notes/Reasons'] != '-' for item in display_data)
+        if notes_exist:
+            with st.expander("📝 Detailed Notes & Reasons", expanded=False):
+                for item in display_data:
+                    if item['Notes/Reasons'] != '-':
+                        st.write(f"**{item['Date']}** ({item['Status']}):")
+                        st.write(f"  {item['Notes/Reasons']}")
+                        st.write("---")
+    
     else:
         st.info("No attendance records found for the selected period.")
 
+
+def get_last_modified_time(attendance_record, edit_logs_for_date):
+    """Get the last modified time for an attendance record"""
+    try:
+        # Get the latest timestamp from either attendance record or edit logs
+        timestamps = []
+        
+        # Add attendance record timestamps
+        if 'updated_at' in attendance_record:
+            timestamps.append(attendance_record['updated_at'])
+        elif 'created_at' in attendance_record:
+            timestamps.append(attendance_record['created_at'])
+        
+        # Add edit log timestamps
+        for log in edit_logs_for_date:
+            if 'edited_at' in log:
+                timestamps.append(log['edited_at'])
+        
+        if timestamps:
+            latest_time = max(timestamps)
+            return latest_time.strftime("%Y-%m-%d %H:%M")
+        else:
+            return "-"
+    except Exception as e:
+        return "-"
+
+
+def calculate_attendance_stats(records):
+    """Calculate attendance statistics"""
+    if not records:
+        return {
+            'total_days': 0,
+            'present_days': 0,
+            'absent_days': 0,
+            'attendance_percentage': 0
+        }
+    
+    total_days = len(records)
+    present_days = sum(1 for record in records if record['status'].lower() == 'present')
+    absent_days = total_days - present_days
+    attendance_percentage = round((present_days / total_days) * 100, 1) if total_days > 0 else 0
+    
+    return {
+        'total_days': total_days,
+        'present_days': present_days,
+        'absent_days': absent_days,
+        'attendance_percentage': attendance_percentage
+    }
 
 def show_attendance_calendar(employee_id):
     """Show attendance in calendar format"""
